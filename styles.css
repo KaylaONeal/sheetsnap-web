@@ -1,43 +1,56 @@
 :root {
-  --bg: #f6f8f7;
-  --surface: #ffffff;
-  --surface-alt: #f0f4f2;
-  --ink: #111b17;
-  --muted: #4b5d55;
-  --accent: #0f766e;
-  --accent-hover: #0d625b;
-  --accent-soft: #e6f4f1;
-  --border: #d7e0dc;
-  --warn-bg: #fff7ed;
-  --warn-ink: #9a3412;
+  --bg: #F3F8F9;
+  --surface: #FFFFFF;
+  --surface-alt: #EAF3F5;
+  --ink: #0B2228;
+  --muted: #466169;
+  --accent: #0D7C8C;
+  --accent-hover: #09616E;
+  --accent-soft: #E0F2F5;
+  --border: #CDE0E4;
+  --dark-card: #0C252C;
+  --code-bg: #0A1B20;
+  --warn-bg: #FFF7ED;
+  --warn-ink: #9A3412;
   --radius: 12px;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 * { box-sizing: border-box; }
+::selection { background: var(--accent); color: #ffffff; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+::-webkit-scrollbar-track { background: transparent; }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  font-family: var(--font-sans);
   background: var(--bg);
   color: var(--ink);
-  line-height: 1.45;
+  line-height: 1.48;
   -webkit-font-smoothing: antialiased;
 }
 
 button, select, input, textarea { font: inherit; }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 13px;
-  border-radius: 8px;
+  min-height: 36px;
+  padding: 7px 14px;
+  border-radius: 9px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--ink);
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.12s ease, border-color 0.12s ease;
 }
@@ -48,21 +61,27 @@ button, select, input, textarea { font: inherit; }
   border-color: var(--accent);
   color: #ffffff;
 }
-.btn.primary:hover { background: var(--accent-hover); }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 .btn.pro {
-  background: #132520;
-  border-color: #132520;
+  background: var(--dark-card);
+  border-color: var(--dark-card);
   color: #ffffff;
 }
-.btn.pro:hover { background: #1f3932; }
+.btn.pro:hover { background: #143640; border-color: #143640; }
+.btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
 
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 0.74rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   background: var(--accent-soft);
   color: var(--accent);
 }

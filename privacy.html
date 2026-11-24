@@ -5,15 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Privacy Policy — SheetSnap</title>
   <link rel="icon" type="image/png" href="./icon-128.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 720px; margin: 48px auto; padding: 0 20px; line-height: 1.65; color: #0f1c17; background: #f5f7f6; }
-    a { color: #0f766e; }
-    .card { background: #fff; border: 1px solid #d4dfda; border-radius: 14px; padding: 24px; }
-    footer { margin-top: 28px; font-size: 0.85rem; color: #4b5e56; }
+    body { max-width: 740px; margin: 48px auto; padding: 0 20px; line-height: 1.65; }
+    a { color: var(--accent); font-weight: 500; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; box-shadow: 0 10px 28px rgba(11, 34, 40, 0.04); }
+    .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; text-decoration: none; color: var(--ink); font-weight: 700; }
+    .brand img { width: 32px; height: 32px; border-radius: 8px; }
+    footer { margin-top: 28px; font-size: 0.85rem; color: var(--muted); }
   </style>
 </head>
 <body>
   <div class="card">
+    <a class="brand" href="./index.html"><img src="./icon-128.png" alt="SheetSnap icon" width="32" height="32" />SheetSnap Studio</a>
     <h1>SheetSnap Privacy Policy</h1>
     <p><strong>Effective date:</strong> November 24, 2026</p>
     <p>SheetSnap Studio and the SheetSnap Chrome Extension process 100% of pasted HTML and scanned DOM tables locally inside your browser.</p>
