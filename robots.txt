@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://kaylaoneal.github.io/sheetsnap-web/sitemap.xml

@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SheetSnap Studio — Free HTML &amp; ARIA Web Table to CSV, Markdown &amp; Excel Converter</title>
+  <meta name="description" content="Convert any HTML or ARIA web table with rowspan/colspan cleanly into CSV, TSV for Google Sheets, Markdown, JSON, or multi-sheet Excel XML — 100% private in your browser." />
+  <meta property="og:title" content="SheetSnap Studio — Table to CSV, Markdown &amp; Excel" />
+  <meta property="og:description" content="Free client-side HTML and ARIA grid extractor with currency cleaning. Zero uploads, zero subscriptions." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/png" href="./icon-128.png" />
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    :root {
+      --bg: #f5f7f6;
+      --surface: #ffffff;
+      --surface-alt: #eef3f0;
+      --ink: #0f1c17;
+      --muted: #4b5e56;
+      --accent: #0f766e;
+      --accent-hover: #0b5d56;
+      --accent-soft: #e4f4f1;
+      --border: #d4dfda;
+      --dark-card: #12231e;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    .shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, #0f766e, #115e59);
+      color: #fff; font-weight: 700; display: grid; place-items: center;
+      font-size: 1rem; letter-spacing: -0.02em;
+    }
+    h1 { margin: 0; font-size: 1.35rem; letter-spacing: -0.02em; }
+    .subtitle { font-size: 0.86rem; color: var(--muted); }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-soft); color: var(--accent);
+      font-size: 0.78rem; font-weight: 600; padding: 5px 12px; border-radius: 999px;
+    }
+    .topbar-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 14px; border-radius: 9px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--ink); font: inherit; font-size: 0.86rem;
+      font-weight: 500; cursor: pointer;
+    }
+    .btn:hover { background: var(--surface-alt); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn.pro { background: var(--dark-card); border-color: var(--dark-card); color: #fff; }
+    .btn.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      min-width: 0;
+    }
+    .card h2 { font-size: 0.96rem; margin: 0 0 10px; }
+    .samples { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .sample-btn {
+      text-align: left; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--bg); cursor: pointer;
+      color: var(--ink); font: inherit;
+    }
+    .sample-btn strong { display: block; font-size: 0.86rem; }
+    .sample-btn span { display: block; font-size: 0.77rem; color: var(--muted); }
+    .sample-btn.active { border-color: var(--accent); background: var(--accent-soft); }
+
+    textarea {
+      width: 100%; min-height: 118px; padding: 10px; border-radius: 9px;
+      border: 1px solid var(--border); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.78rem; resize: vertical; background: #fafcfb; color: var(--ink);
+    }
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .col-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .col-pill {
+      padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--bg); font-size: 0.78rem; cursor: pointer; color: var(--ink);
+    }
+    .col-pill.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+    .table-wrap {
+      overflow-x: auto; border: 1px solid var(--border); border-radius: 10px;
+      margin-bottom: 14px; max-height: 300px;
+    }
+    table { border-collapse: collapse; width: 100%; font-size: 0.84rem; }
+    th, td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+    th { background: var(--surface-alt); font-weight: 600; position: sticky; top: 0; }
+    tr:last-child td { border-bottom: none; }
+    th:last-child, td:last-child { border-right: none; }
+
+    .export-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    pre.code-out {
+      margin: 0; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
+      background: #101b17; color: #e2f1eb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.79rem; overflow-x: auto; max-height: 200px; white-space: pre;
+    }
+    .export-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+    .status-bar { font-size: 0.82rem; color: var(--muted); margin-left: auto; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(15, 28, 23, 0.56);
+      display: none; align-items: center; justify-content: center; padding: 16px; z-index: 50;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--surface); border-radius: 16px; max-width: 520px; width: 100%;
+      padding: 22px; border: 1px solid var(--border); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+    }
+    .modal h3 { margin: 0 0 6px; font-size: 1.15rem; }
+    .price-tag { font-size: 1.65rem; font-weight: 700; color: var(--accent); margin: 8px 0; }
+    .modal ul { margin: 10px 0 16px; padding-left: 18px; font-size: 0.88rem; color: var(--muted); }
+    .modal li { margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">SS</div>
+        <div>
+          <h1>SheetSnap Table Studio</h1>
+          <div class="subtitle">Free CSV, TSV, Markdown &amp; JSON downloads · Handles rowspan, colspan &amp; ARIA grids locally</div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span class="pill">100% On-Device · No Upload</span>
+        <a class="btn" href="https://chromewebstore.google.com/detail/peedlheecicglifjpkjpednihmekkmdc" target="_blank" rel="noopener">Chrome Extension</a>
+        <button id="openProBtn" class="btn pro" type="button">Pro Lifetime ($14.99)</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="card">
+        <h2>1. Pick Sample or Paste HTML</h2>
+        <div class="samples" id="sampleList">
+          <button class="sample-btn active" data-sample="rowspan" type="button">
+            <strong>SaaS Pricing Matrix (rowspan + colspan)</strong>
+            <span>Tests 2D merged-header expansion into tidy rows</span>
+          </button>
+          <button class="sample-btn" data-sample="finance" type="button">
+            <strong>Quarterly Revenue (Dirty Currency)</strong>
+            <span>Strips $, €, commas &amp; ($120.50) accounting negatives</span>
+          </button>
+          <button class="sample-btn" data-sample="aria" type="button">
+            <strong>Modern Dashboard (ARIA role="grid")</strong>
+            <span>Captures div-based grids missed by legacy scrapers</span>
+          </button>
+        </div>
+
+        <label for="htmlInput" style="display:block;font-size:0.82rem;color:var(--muted);margin-bottom:6px;">
+          Paste custom &lt;table&gt; or ARIA grid HTML
+        </label>
+        <textarea id="htmlInput" placeholder="Paste any HTML table snippet here..."></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button id="parseHtmlBtn" class="btn primary" type="button">Parse Pasted HTML</button>
+          <button id="clearHtmlBtn" class="btn" type="button">Reset</button>
+        </div>
+      </aside>
+
+      <main class="card">
+        <div class="controls">
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.86rem;cursor:pointer;">
+            <input id="cleanCurrencyToggle" type="checkbox" />
+            Clean Currency &amp; Numbers ($/€/,)
+          </label>
+          <span id="gridMeta" class="badge" style="margin-left:auto;">0 rows × 0 cols</span>
+        </div>
+
+        <div style="font-size:0.8rem;color:var(--muted);margin-bottom:6px;">Columns to export (click to toggle):</div>
+        <div id="colPills" class="col-pills"></div>
+
+        <div class="table-wrap" id="tableWrap"></div>
+
+        <div class="export-tabs" id="formatTabs">
+          <button class="btn active" data-fmt="csv" type="button">CSV (Free)</button>
+          <button class="btn" data-fmt="tsv" type="button">TSV for Sheets (Free)</button>
+          <button class="btn" data-fmt="md" type="button">Markdown (Free)</button>
+          <button class="btn" data-fmt="json" type="button">JSON (Free)</button>
+          <button class="btn" data-fmt="xml" type="button">Excel XML (Batch Pro)</button>
+        </div>
+
+        <pre id="exportPreview" class="code-out"></pre>
+
+        <div class="export-actions">
+          <button id="copyOutBtn" class="btn primary" type="button">Copy Output</button>
+          <button id="downloadOutBtn" class="btn" type="button">Download File</button>
+          <button id="addBatchBtn" class="btn" type="button">+ Add to Batch (<span id="batchCount">0</span>)</button>
+          <span id="actionStatus" class="status-bar">Ready</span>
+        </div>
+      </main>
+    </div>
+
+    <footer style="margin-top:28px;padding-top:16px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;font-size:0.82rem;color:var(--muted);">
+      <span>SheetSnap — 100% client-side HTML &amp; ARIA table extraction. Zero servers, zero tracking.</span>
+      <span style="display:flex;gap:14px;">
+        <a href="./privacy.html" style="color:var(--accent);">Privacy Policy</a>
+        <a href="https://chromewebstore.google.com/detail/peedlheecicglifjpkjpednihmekkmdc" target="_blank" rel="noopener" style="color:var(--accent);">Chrome Extension</a>
+      </span>
+    </footer>
+  </div>
+
+  <div id="proModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="proTitle">
+    <div class="modal">
+      <span class="badge">Honest Pricing · No Subscription</span>
+      <h3 id="proTitle">SheetSnap Pro — Lifetime Unlock</h3>
+      <div class="price-tag">$14.99 <span style="font-size:0.86rem;font-weight:400;color:var(--muted)">one-time · pay once, keep forever</span></div>
+      <ul>
+        <li><strong>Free forever:</strong> Unlimited single-table CSV, TSV, Markdown &amp; JSON downloads and clipboard copies.</li>
+        <li><strong>Pro Lifetime unlocks:</strong> Multi-table Batch Workbook export (combine queued tables into one multi-sheet Excel XML file) + saved cleaning presets.</li>
+        <li><strong>Zero lock-in:</strong> 100% local browser execution. No account, no tracking, no weekly subscription trap.</li>
+      </ul>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+        <button id="restoreProBtn" class="btn" type="button">Restore License</button>
+        <button id="downloadBatchBtn" class="btn primary" type="button">Export Batch Workbook Demo</button>
+        <button id="closeProBtn" class="btn" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="studio.js"></script>
+</body>
+</html>

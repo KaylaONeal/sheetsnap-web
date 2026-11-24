@@ -1,0 +1,68 @@
+:root {
+  --bg: #f6f8f7;
+  --surface: #ffffff;
+  --surface-alt: #f0f4f2;
+  --ink: #111b17;
+  --muted: #4b5d55;
+  --accent: #0f766e;
+  --accent-hover: #0d625b;
+  --accent-soft: #e6f4f1;
+  --border: #d7e0dc;
+  --warn-bg: #fff7ed;
+  --warn-ink: #9a3412;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, select, input, textarea { font: inherit; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.btn:hover { background: var(--surface-alt); }
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.pro {
+  background: #132520;
+  border-color: #132520;
+  color: #ffffff;
+}
+.btn.pro:hover { background: #1f3932; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
