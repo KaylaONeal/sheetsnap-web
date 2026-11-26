@@ -5,7 +5,9 @@ import {
   toTSV,
   toMarkdown,
   toJSON,
-  toExcelXML,
+  isValidStripeReceiptId,
+  parseProCheckoutFromSearch,
+  buildBatchWorkbook,
 } from "./table_engine.mjs";
 
 const SAMPLES = {
@@ -60,6 +62,10 @@ const SAMPLES = {
   },
 };
 
+const PRO_STORAGE_KEY = "sheetsnap_pro_v1";
+const PRESET_STORAGE_KEY = "sheetsnap_prefs_v1";
+const VALID_FORMATS = new Set(["csv", "tsv", "md", "json", "xml"]);
+
 let currentTable = { title: "Sample", rows: [] };
 let selectedCols = [];
 let currentFmt = "csv";
@@ -67,6 +73,7 @@ const batchQueue = [];
 
 const htmlInput = document.getElementById("htmlInput");
 const cleanToggle = document.getElementById("cleanCurrencyToggle");
+const savePresetBtn = document.getElementById("savePresetBtn");
 const gridMeta = document.getElementById("gridMeta");
 const colPills = document.getElementById("colPills");
 const tableWrap = document.getElementById("tableWrap");
@@ -74,6 +81,119 @@ const exportPreview = document.getElementById("exportPreview");
 const actionStatus = document.getElementById("actionStatus");
 const batchCount = document.getElementById("batchCount");
 const proModal = document.getElementById("proModal");
+const openProBtn = document.getElementById("openProBtn");
+const proStatusBadge = document.getElementById("proStatusBadge");
+const buyProLink = document.getElementById("buyProLink");
+const downloadBatchBtn = document.getElementById("downloadBatchBtn");
+const licenseInput = document.getElementById("licenseInput");
+const licenseMsg = document.getElementById("licenseMsg");
+
+function readStorageJson(key) {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStorageJson(key, value) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function loadProState() {
+  const data = readStorageJson(PRO_STORAGE_KEY);
+  return data && data.unlocked && isValidStripeReceiptId(data.receiptId) ? data : null;
+}
+
+function saveProState(receiptId) {
+  const payload = { unlocked: true, receiptId, unlockedAt: new Date().toISOString() };
+  writeStorageJson(PRO_STORAGE_KEY, payload);
+  return payload;
+}
+
+function loadPreset() {
+  return readStorageJson(PRESET_STORAGE_KEY);
+}
+
+function savePreset(preset) {
+  return writeStorageJson(PRESET_STORAGE_KEY, preset);
+}
+
+function syncProUi() {
+  const pro = loadProState();
+  if (pro) {
+    const tail = pro.receiptId.slice(-4);
+    openProBtn.textContent = "Pro Active ✓";
+    proStatusBadge.textContent = `Pro Lifetime Active · ••••${tail}`;
+    proStatusBadge.classList.add("pro-active-badge");
+    savePresetBtn.textContent = "Save Preset";
+    buyProLink.textContent = "Manage / Buy Another License ($14.99)";
+    buyProLink.classList.remove("primary");
+    downloadBatchBtn.classList.add("primary");
+  } else {
+    openProBtn.textContent = "Pro Lifetime ($14.99)";
+    proStatusBadge.textContent = "Free Tier";
+    proStatusBadge.classList.remove("pro-active-badge");
+    savePresetBtn.textContent = "Save Preset (Pro)";
+    buyProLink.textContent = "Buy Pro Lifetime — $14.99";
+    buyProLink.classList.add("primary");
+    downloadBatchBtn.classList.remove("primary");
+  }
+}
+
+function triggerFileDownload(filename, mime, content) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function applySavedPreset() {
+  if (!loadProState()) return;
+  const preset = loadPreset();
+  if (!preset) return;
+  if (typeof preset.stripCurrency === "boolean") {
+    cleanToggle.checked = preset.stripCurrency;
+  }
+  if (VALID_FORMATS.has(preset.defaultFmt)) {
+    currentFmt = preset.defaultFmt;
+    document
+      .querySelectorAll("#formatTabs .btn")
+      .forEach((b) => b.classList.toggle("active", b.dataset.fmt === currentFmt));
+  }
+}
+
+function handleBatchExport({ closeModal = false } = {}) {
+  const rows = getCleanedRows();
+  if (!batchQueue.length && !rows.length) {
+    actionStatus.textContent = "Parse or select a table first";
+    return;
+  }
+  const { sheetCount, xml } = buildBatchWorkbook(
+    batchQueue,
+    currentTable.title || "Sheet1",
+    rows
+  );
+  exportPreview.textContent = xml;
+  if (loadProState()) {
+    triggerFileDownload("sheetsnap-batch-workbook.xml", "application/xml;charset=utf-8", xml);
+    actionStatus.textContent = `Downloaded ${sheetCount}-sheet Excel XML workbook`;
+    if (closeModal) proModal.classList.remove("open");
+    return;
+  }
+  actionStatus.textContent = `Preview ready (${sheetCount} sheets) — unlock Pro ($14.99) to download multi-sheet Batch Workbooks`;
+  licenseMsg.textContent = `Preview rendered (${sheetCount} sheet${sheetCount > 1 ? "s" : ""}). Complete Pro Checkout ($14.99) or paste your Stripe receipt # to download .xml workbooks.`;
+  proModal.classList.add("open");
+}
 
 function escHtml(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -198,13 +318,7 @@ document.getElementById("copyOutBtn").addEventListener("click", async () => {
 document.getElementById("downloadOutBtn").addEventListener("click", () => {
   const { ext, mime, text } = getFormattedPayload();
   if (!text) return;
-  const blob = new Blob([ext === "csv" ? "\uFEFF" + text : text], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `sheetsnap-export.${ext}`;
-  a.click();
-  URL.revokeObjectURL(url);
+  triggerFileDownload(`sheetsnap-export.${ext}`, mime, ext === "csv" ? "\uFEFF" + text : text);
   actionStatus.textContent = `Downloaded sheetsnap-export.${ext}`;
 });
 
@@ -216,19 +330,54 @@ document.getElementById("addBatchBtn").addEventListener("click", () => {
   actionStatus.textContent = `Added to batch (${batchQueue.length} sheet${batchQueue.length > 1 ? "s" : ""})`;
 });
 
-document.getElementById("openProBtn").addEventListener("click", () => proModal.classList.add("open"));
+document.getElementById("exportBatchBtn").addEventListener("click", () => {
+  handleBatchExport({ closeModal: true });
+});
+
+savePresetBtn.addEventListener("click", () => {
+  if (!loadProState()) {
+    proModal.classList.add("open");
+    actionStatus.textContent = "Saved cleaning presets are part of Pro Lifetime ($14.99)";
+    return;
+  }
+  savePreset({ stripCurrency: cleanToggle.checked, defaultFmt: currentFmt });
+  actionStatus.textContent = "Saved default preset (currency cleaning + format)";
+});
+
+openProBtn.addEventListener("click", () => {
+  syncProUi();
+  proModal.classList.add("open");
+});
 document.getElementById("closeProBtn").addEventListener("click", () => proModal.classList.remove("open"));
 document.getElementById("restoreProBtn").addEventListener("click", () => {
-  actionStatus.textContent = "Local license check: Free tier active (no server account needed)";
-  proModal.classList.remove("open");
+  const candidate = (licenseInput.value || "").trim();
+  if (!isValidStripeReceiptId(candidate)) {
+    licenseMsg.textContent =
+      "Enter a valid Stripe receipt # (e.g. 1234-5678) or session ID (cs_live_... / pi_...).";
+    return;
+  }
+  saveProState(candidate);
+  licenseInput.value = "";
+  syncProUi();
+  licenseMsg.textContent = "Pro Lifetime unlocked locally on this browser.";
+  actionStatus.textContent = "SheetSnap Pro Lifetime unlocked! Multi-sheet Batch Export & Presets are active.";
 });
-document.getElementById("downloadBatchBtn").addEventListener("click", () => {
-  const sheets = batchQueue.length ? batchQueue : [{ name: currentTable.title || "Sheet1", rows: getCleanedRows() }];
-  const xml = toExcelXML(sheets);
-  exportPreview.textContent = xml;
-  actionStatus.textContent = `Generated ${sheets.length}-sheet Excel XML workbook`;
-  proModal.classList.remove("open");
+downloadBatchBtn.addEventListener("click", () => {
+  handleBatchExport({ closeModal: true });
 });
+
+const checkoutSession = parseProCheckoutFromSearch(window.location.search);
+let unlockedBanner = null;
+if (checkoutSession) {
+  saveProState(checkoutSession);
+  const cleanUrl = window.location.pathname + (window.location.hash || "");
+  window.history.replaceState({}, "", cleanUrl);
+  unlockedBanner = "SheetSnap Pro Lifetime unlocked! Multi-sheet Batch Export & Presets are active.";
+  licenseMsg.textContent = "Checkout confirmed — Pro Lifetime is now active on this browser.";
+}
+
+applySavedPreset();
+syncProUi();
 
 if (location.hash === "#pro") {
   proModal.classList.add("open");
@@ -236,3 +385,6 @@ if (location.hash === "#pro") {
 
 htmlInput.value = SAMPLES.rowspan.html;
 loadHtml(SAMPLES.rowspan.html, "rowspan");
+if (unlockedBanner) {
+  actionStatus.textContent = unlockedBanner;
+}

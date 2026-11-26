@@ -345,3 +345,43 @@ export function toExcelXML(sheets) {
 ${wsBlocks}
 </Workbook>`;
 }
+
+/**
+ * Trim whitespace around a user-supplied Stripe receipt # or checkout/payment ID.
+ */
+export function normalizeReceiptId(raw) {
+  return String(raw ?? "").trim();
+}
+
+/**
+ * Validate format of a Stripe Checkout Session, Payment Intent, Charge, Invoice, or 8-digit Receipt #.
+ */
+export function isValidStripeReceiptId(raw) {
+  const clean = normalizeReceiptId(raw);
+  return /^(?:cs_(?:live|test)_[A-Za-z0-9]{10,}|pi_[A-Za-z0-9]{10,}|ch_[A-Za-z0-9]{10,}|in_[A-Za-z0-9]{10,}|\d{4}-\d{4})$/.test(
+    clean
+  );
+}
+
+/**
+ * Extract validated `pro_checkout` query parameter returned by Stripe Checkout redirect.
+ */
+export function parseProCheckoutFromSearch(search) {
+  const params = new URLSearchParams(String(search || ""));
+  const candidate = normalizeReceiptId(params.get("pro_checkout") || "");
+  return isValidStripeReceiptId(candidate) ? candidate : null;
+}
+
+/**
+ * Build a SpreadsheetML 2003 multi-sheet workbook from queued tables (or single active table fallback).
+ */
+export function buildBatchWorkbook(sheets, fallbackTitle = "Sheet1", fallbackRows = []) {
+  const activeSheets =
+    Array.isArray(sheets) && sheets.length > 0
+      ? sheets
+      : [{ name: fallbackTitle || "Sheet1", rows: fallbackRows }];
+  return {
+    sheetCount: activeSheets.length,
+    xml: toExcelXML(activeSheets),
+  };
+}

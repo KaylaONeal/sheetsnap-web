@@ -156,6 +156,7 @@
             <input id="cleanCurrencyToggle" type="checkbox" />
             Clean Currency &amp; Numbers ($/€/,)
           </label>
+          <button id="savePresetBtn" class="btn" type="button" style="min-height:30px;padding:4px 10px;font-size:0.78rem;">Save Preset (Pro)</button>
           <span id="gridMeta" class="badge" style="margin-left:auto;">0 rows × 0 cols</span>
         </div>
 
@@ -178,6 +179,7 @@
           <button id="copyOutBtn" class="btn primary" type="button">Copy Output</button>
           <button id="downloadOutBtn" class="btn" type="button">Download File</button>
           <button id="addBatchBtn" class="btn" type="button">+ Add to Batch (<span id="batchCount">0</span>)</button>
+          <button id="exportBatchBtn" class="btn pro" type="button">Export Batch .xml</button>
           <span id="actionStatus" class="status-bar">Ready</span>
         </div>
       </main>
@@ -194,6 +196,7 @@
 
   <div id="proModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="proTitle">
     <div class="modal">
+      <div id="proStatusBadge" class="badge" style="margin-bottom:8px;">Free Tier</div>
       <h3 id="proTitle">SheetSnap Pro — Lifetime Unlock</h3>
       <div class="price-tag">$14.99 <span style="font-size:0.86rem;font-weight:400;color:var(--muted)">one-time · no subscription · keep forever</span></div>
       <ul>
@@ -201,9 +204,21 @@
         <li><strong>Pro Lifetime unlocks:</strong> Multi-table Batch Workbook export (combine queued tables into one multi-sheet Excel XML file) + saved cleaning presets.</li>
         <li><strong>Zero lock-in:</strong> 100% local browser execution. No account, no tracking, no weekly subscription trap.</li>
       </ul>
+      <div style="margin:14px 0;padding-top:12px;border-top:1px solid var(--border);">
+        <label for="licenseInput" style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:6px;">
+          Already purchased? Activate or restore locally
+        </label>
+        <div class="license-row">
+          <input id="licenseInput" type="text" placeholder="Stripe receipt # (1234-5678) or session ID (cs_live_...)" style="flex:1;min-width:200px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--ink);font-size:0.82rem;" />
+          <button id="restoreProBtn" class="btn" type="button">Activate / Restore</button>
+        </div>
+        <div id="licenseMsg" class="modal-note">
+          Stripe checkout redirects back automatically. Paste your Stripe receipt # here to unlock in both Web Studio and the Chrome Extension. Support: kayla.oneal.dev@gmail.com
+        </div>
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-        <button id="restoreProBtn" class="btn" type="button">Restore License</button>
-        <button id="downloadBatchBtn" class="btn primary" type="button">Export Batch Workbook Demo</button>
+        <a id="buyProLink" class="btn primary" href="https://buy.stripe.com/28E00jfx84poglpgtweQM00" target="_blank" rel="noopener">Buy Pro Lifetime — $14.99</a>
+        <button id="downloadBatchBtn" class="btn" type="button">Download Batch Workbook (.xml)</button>
         <button id="closeProBtn" class="btn" type="button">Close</button>
       </div>
     </div>
